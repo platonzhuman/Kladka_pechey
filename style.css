@@ -1139,3 +1139,28 @@ body {
   }
 }
 
+/* ===== МОБИЛЬНЫЕ ПРАВКИ ДЛЯ "ПОЧЕМУ МЫ" (убираем сложный стек) ===== */
+@media (max-width: 992px) {
+  .why-us {
+    height: auto !important;           /* высота по контенту */
+    overflow: visible !important;      /* убираем скрытие */
+    margin-top: 60px;                  /* можно подогнать под дизайн */
+  }
+  .why-sticky-container {
+    position: relative !important;     /* убираем absolute */
+    height: auto !important;           /* высота по контенту */
+    transform: none !important;        /* отключаем трансформацию */
+    will-change: auto !important;
+  }
+  .why-sticky {
+    flex: 0 0 auto;                    /* убираем фиксированную высоту */
+    min-height: auto;
+    padding: 2rem 1rem;
+    opacity: 1;                         /* будет управляться JS-анимацией */
+    transform: none;
+  }
+  .why-card {
+    margin: 1rem 0;
+    padding: 2rem;
+  }
+}
