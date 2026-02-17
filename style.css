@@ -1144,7 +1144,7 @@ body {
   .why-us {
     height: auto !important;           /* высота по контенту */
     overflow: visible !important;      /* убираем скрытие */
-    margin-top: 60px;                  /* можно подогнать под дизайн */
+    margin-top: 100px;                  /* можно подогнать под дизайн */
   }
   .why-sticky-container {
     position: relative !important;     /* убираем absolute */
