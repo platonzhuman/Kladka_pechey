@@ -1,4 +1,4 @@
-// index.js — финальная версия с отладкой проектов
+// index.js — финальная версия с плавным мобильным стеком
 
 window.addEventListener('load', () => {
   if (typeof gsap === 'undefined') {
@@ -36,6 +36,7 @@ window.addEventListener('load', () => {
   // ОПРЕДЕЛЯЕМ ТИП УСТРОЙСТВА
   // ======================
   const isDesktop = window.innerWidth > 992;
+  const isMobile = window.innerWidth <= 992;
 
   // ======================
   // LENIS — ТОЛЬКО НА ДЕСКТОПЕ (С ЗАЩИТОЙ ОТ ОШИБОК)
@@ -252,31 +253,24 @@ window.addEventListener('load', () => {
   }
 
   // ======================
-  // ВЕРТИКАЛЬНЫЙ СТЕК "ПОЧЕМУ МЫ"
+  // ВЕРТИКАЛЬНЫЙ СТЕК "ПОЧЕМУ МЫ" — адаптивная версия
   // ======================
   const whyUsSection = document.querySelector('#why-us');
   const whyContainer = document.querySelector('.why-sticky-container');
   const whyItems = gsap.utils.toArray('.why-sticky');
 
   if (whyUsSection && whyContainer && whyItems.length) {
-    function initVerticalStack() {
-      ScrollTrigger.getAll().forEach(trigger => {
-        if (trigger.vars.id === 'whyVertical') trigger.kill();
-      });
-
-      const isDesktop = window.innerWidth > 992;
-      const scrubValue = isDesktop ? 1 : 0.2;
-      const pinType = isDesktop ? 'fixed' : 'transform';
-
+    if (isDesktop) {
+      // Десктоп: эффект pin с анимацией
       ScrollTrigger.create({
         id: 'whyVertical',
         trigger: whyUsSection,
         pin: true,
-        pinType: pinType,
+        pinType: 'fixed',
         anticipatePin: 1,
         start: 'top top',
         end: () => `+=${whyContainer.offsetHeight - window.innerHeight}`,
-        scrub: scrubValue,
+        scrub: 1,
         animation: gsap.to(whyContainer, {
           y: -(whyContainer.offsetHeight - window.innerHeight),
           ease: 'none',
@@ -285,16 +279,26 @@ window.addEventListener('load', () => {
         invalidateOnRefresh: true,
         fastScrollEnd: true,
       });
+    } else {
+      // Мобильные: простая анимация появления каждой карточки при скролле
+      whyItems.forEach((item, index) => {
+        gsap.fromTo(item,
+          { opacity: 0, y: 50 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            scrollTrigger: {
+              trigger: item,
+              start: 'top 90%',
+              end: 'top 30%',
+              scrub: 0.5,
+              toggleActions: 'play none none reverse',
+            },
+          }
+        );
+      });
     }
-
-    initVerticalStack();
-
-    window.addEventListener('resize', () => {
-      setTimeout(() => {
-        initVerticalStack();
-        ScrollTrigger.refresh();
-      }, 200);
-    });
   }
 
   // ======================
@@ -317,7 +321,7 @@ window.addEventListener('load', () => {
   }
 
   // ======================
-  // FALLBACK С ОТЛАДКОЙ
+  // FALLBACK ДЛЯ ПРОЕКТОВ (без изменений)
   // ======================
   setTimeout(() => {
     const projectElements = document.querySelectorAll('.projects-desktop .project-item');
@@ -338,7 +342,6 @@ window.addEventListener('load', () => {
         y: 0, 
         clearProps: 'transform' 
       });
-      // Дополнительно убираем возможные inline-стили от предыдущих анимаций
       document.querySelectorAll('.projects-desktop .project-item').forEach(el => {
         el.style.removeProperty('opacity');
         el.style.removeProperty('transform');
@@ -348,6 +351,30 @@ window.addEventListener('load', () => {
     }
   }, 2000);
 
+  // Усиленный fallback
+  setTimeout(() => {
+    const projectElements = document.querySelectorAll('.projects-desktop .project-item');
+    console.log(`[Fallback2] Найдено проектов: ${projectElements.length}`);
+    projectElements.forEach((el, index) => {
+      el.style.setProperty('opacity', '1', 'important');
+      el.style.setProperty('transform', 'none', 'important');
+      el.style.setProperty('visibility', 'visible', 'important');
+      el.style.removeProperty('opacity');
+      el.style.removeProperty('transform');
+      el.classList.add('project-item-visible');
+      console.log(`[Fallback2] Элемент ${index} принудительно показан`);
+    });
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .projects-desktop .project-item {
+        opacity: 1 !important;
+        transform: none !important;
+        visibility: visible !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }, 2500);
+
   // Обновляем ScrollTrigger
   setTimeout(() => {
     ScrollTrigger.refresh();
@@ -355,37 +382,3 @@ window.addEventListener('load', () => {
 
   ScrollTrigger.refresh();
 });
-
-
-// ======================
-// УСИЛЕННЫЙ FALLBACK С ПРИНУДИТЕЛЬНЫМ ПОКАЗОМ
-// ======================
-setTimeout(() => {
-  const projectElements = document.querySelectorAll('.projects-desktop .project-item');
-  console.log(`[Fallback] Найдено проектов: ${projectElements.length}`);
-
-  projectElements.forEach((el, index) => {
-    // Принудительно устанавливаем стили через style с !important
-    el.style.setProperty('opacity', '1', 'important');
-    el.style.settransform = 'none';
-    el.style.setProperty('transform', 'none', 'important');
-    el.style.setProperty('visibility', 'visible', 'important');
-    // Убираем возможные inline-стили от GSAP
-    el.style.removeProperty('opacity');
-    el.style.removeProperty('transform');
-    // Добавляем класс, если нужно переопределить CSS
-    el.classList.add('project-item-visible');
-    console.log(`[Fallback] Элемент ${index} принудительно показан`);
-  });
-
-  // Дополнительно: добавим CSS-правило, которое перекроет любые скрывающие стили
-  const style = document.createElement('style');
-  style.innerHTML = `
-    .projects-desktop .project-item {
-      opacity: 1 !important;
-      transform: none !important;
-      visibility: visible !important;
-    }
-  `;
-  document.head.appendChild(style);
-}, 2500); // Даём больше времени на загрузку
