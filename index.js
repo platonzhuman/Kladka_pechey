@@ -1,4 +1,4 @@
-// index.js — финальная версия с оптимизацией для мобильных
+// index.js — финальная версия с отладкой проектов
 
 window.addEventListener('load', () => {
   if (typeof gsap === 'undefined') {
@@ -16,7 +16,6 @@ window.addEventListener('load', () => {
     limitCallbacks: true,
     ignoreMobileResize: true,
   });
-  ScrollTrigger.normalizeScroll(true); // улучшает обработку касаний
 
   // ======================
   // ОТКЛЮЧАЕМ ВОССТАНОВЛЕНИЕ ПРОКРУТКИ БРАУЗЕРОМ
@@ -39,45 +38,52 @@ window.addEventListener('load', () => {
   const isDesktop = window.innerWidth > 992;
 
   // ======================
-  // LENIS — ТОЛЬКО НА ДЕСКТОПЕ (НА МОБИЛЬНЫХ НЕ ИНИЦИАЛИЗИРУЕМ)
+  // LENIS — ТОЛЬКО НА ДЕСКТОПЕ (С ЗАЩИТОЙ ОТ ОШИБОК)
   // ======================
   let lenis;
-  if (isDesktop) {
-    lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smooth: true,
-      wheelMultiplier: 1,
-      touchMultiplier: 2,
-    });
+  if (isDesktop && typeof Lenis !== 'undefined') {
+    try {
+      lenis = new Lenis({
+        duration: 1.2,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        smooth: true,
+        wheelMultiplier: 1,
+        touchMultiplier: 2,
+      });
 
-    lenis.on('scroll', ScrollTrigger.update);
+      lenis.on('scroll', ScrollTrigger.update);
 
-    gsap.ticker.add((time) => {
-      lenis.raf(time * 1000);
-    });
+      gsap.ticker.add((time) => {
+        lenis.raf(time * 1000);
+      });
 
-    gsap.ticker.lagSmoothing(0);
+      gsap.ticker.lagSmoothing(0);
 
-    ScrollTrigger.scrollerProxy(document.body, {
-      scrollTop(value) {
-        if (arguments.length) {
-          lenis.scrollTo(value);
-        }
-        return lenis.scroll;
-      },
-      getBoundingClientRect() {
-        return { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight };
-      },
-      pinType: document.body.style.transform ? 'transform' : 'fixed',
-    });
+      ScrollTrigger.scrollerProxy(document.body, {
+        scrollTop(value) {
+          if (arguments.length) {
+            lenis.scrollTo(value);
+          }
+          return lenis.scroll;
+        },
+        getBoundingClientRect() {
+          return { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight };
+        },
+        pinType: document.body.style.transform ? 'transform' : 'fixed',
+      });
+    } catch (e) {
+      console.error('Ошибка инициализации Lenis:', e);
+      ScrollTrigger.scrollerProxy(document.body, {
+        scrollTop(value) {
+          if (arguments.length) window.scrollTo(0, value);
+          return window.pageYOffset;
+        },
+      });
+    }
   } else {
-    // На мобильных — обычный скролл
     ScrollTrigger.scrollerProxy(document.body, {
       scrollTop(value) {
-        if (arguments.length) {
-          window.scrollTo(0, value);
-        }
+        if (arguments.length) window.scrollTo(0, value);
         return window.pageYOffset;
       },
     });
@@ -112,106 +118,92 @@ window.addEventListener('load', () => {
   });
 
   // ======================
-  // АНИМАЦИИ (РАБОТАЮТ ВЕЗДЕ)
+  // АНИМАЦИИ (С ПРОВЕРКОЙ НАЛИЧИЯ ЭЛЕМЕНТОВ)
   // ======================
-  gsap.from('.hero__title-line', {
-    y: 100,
-    opacity: 0,
-    duration: 1,
-    stagger: 0.2,
-    ease: 'power3.out',
-  });
-  gsap.from('.hero__subtitle', {
-    y: 30,
-    opacity: 0,
-    delay: 0.6,
-    duration: 1,
-  });
-  gsap.from('.btn', {
-    scale: 0.8,
-    opacity: 0,
-    delay: 0.8,
-    duration: 0.6,
-    ease: 'back.out(1.7)',
-  });
-
-  gsap.utils.toArray('.rotating-card').forEach((card, i) => {
-    gsap.fromTo(card,
-      { rotation: i % 2 === 0 ? -10 : 10, y: 50 },
-      {
-        rotation: 0,
-        y: 0,
-        scrollTrigger: {
-          trigger: '.rotating-section',
-          start: 'top bottom',
-          end: 'bottom top',
-          scrub: 1.5,
-        },
-      }
-    );
-  });
-
-  // Анимация появления проектов
-  gsap.from('.project-item', {
-    scrollTrigger: {
-      trigger: '#projects',
-      start: 'top 80%',
-    },
-    y: 60,
-    opacity: 0,
-    duration: 0.8,
-    stagger: 0.1,
-  });
-
-  // Заголовки секций
-  gsap.utils.toArray('.section-title').forEach(title => {
-    gsap.from(title, {
-      scrollTrigger: {
-        trigger: title,
-        start: 'top 85%',
-      },
+  if (document.querySelector('.hero__title-line')) {
+    gsap.from('.hero__title-line', {
+      y: 100,
       opacity: 0,
-      y: 40,
       duration: 1,
+      stagger: 0.2,
+      ease: 'power3.out',
     });
-  });
-
-  // ======================
-  // ЭФФЕКТ ДЛЯ ПРОЕКТОВ (горизонтальный скролл на мобильных)
-  // ======================
-  const projectsGrid = document.querySelector('.projects-grid');
-  const projectItems = document.querySelectorAll('.project-item');
-
-  function updateProjectOpacity() {
-    if (window.innerWidth <= 992) {
-      const containerRect = projectsGrid.getBoundingClientRect();
-      const containerCenter = containerRect.left + containerRect.width / 2;
-
-      projectItems.forEach(item => {
-        const itemRect = item.getBoundingClientRect();
-        const itemCenter = itemRect.left + itemRect.width / 2;
-        const distance = Math.abs(itemCenter - containerCenter);
-        const maxDistance = containerRect.width / 2 + itemRect.width / 2;
-        let opacity = 1 - distance / maxDistance;
-        opacity = Math.min(1, Math.max(0.4, opacity)); // не уходим в полную прозрачность
-        gsap.set(item, { opacity });
-      });
-    } else {
-      gsap.set(projectItems, { opacity: 1 });
-    }
   }
 
-  if (projectsGrid && projectItems.length) {
-    updateProjectOpacity();
-    projectsGrid.addEventListener('scroll', updateProjectOpacity);
-    window.addEventListener('resize', updateProjectOpacity);
+  if (document.querySelector('.hero__subtitle')) {
+    gsap.from('.hero__subtitle', {
+      y: 30,
+      opacity: 0,
+      delay: 0.6,
+      duration: 1,
+    });
+  }
+
+  if (document.querySelector('.btn')) {
+    gsap.from('.btn', {
+      scale: 0.8,
+      opacity: 0,
+      delay: 0.8,
+      duration: 0.6,
+      ease: 'back.out(1.7)',
+    });
+  }
+
+  const rotatingCards = gsap.utils.toArray('.rotating-card');
+  if (rotatingCards.length) {
+    rotatingCards.forEach((card, i) => {
+      gsap.fromTo(card,
+        { rotation: i % 2 === 0 ? -10 : 10, y: 50 },
+        {
+          rotation: 0,
+          y: 0,
+          scrollTrigger: {
+            trigger: '.rotating-section',
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 1.5,
+          },
+        }
+      );
+    });
+  }
+
+  // Анимация появления проектов (десктопная сетка)
+  const projectItems = document.querySelectorAll('.projects-desktop .project-item');
+  if (projectItems.length) {
+    gsap.from(projectItems, {
+      scrollTrigger: {
+        trigger: '#projects',
+        start: 'top 80%',
+      },
+      y: 60,
+      opacity: 0,
+      duration: 0.8,
+      stagger: 0.1,
+    });
+  }
+
+  const sectionTitles = gsap.utils.toArray('.section-title');
+  if (sectionTitles.length) {
+    sectionTitles.forEach(title => {
+      gsap.from(title, {
+        scrollTrigger: {
+          trigger: title,
+          start: 'top 85%',
+        },
+        opacity: 0,
+        y: 40,
+        duration: 1,
+      });
+    });
   }
 
   // ======================
   // ЭФФЕКТЫ НАВЕДЕНИЯ (ТОЛЬКО ДЕСКТОП)
   // ======================
   if (isDesktop) {
-    projectItems.forEach(item => {
+    const desktopProjectItems = document.querySelectorAll('.projects-desktop .project-item');
+    desktopProjectItems.forEach(item => {
       item.addEventListener('mousemove', (e) => {
         const rect = item.getBoundingClientRect();
         const x = (e.clientX - rect.left) / rect.width - 0.5;
@@ -260,7 +252,7 @@ window.addEventListener('load', () => {
   }
 
   // ======================
-  // ВЕРТИКАЛЬНЫЙ СТЕК "ПОЧЕМУ МЫ" — РАБОТАЕТ НА ВСЕХ УСТРОЙСТВАХ
+  // ВЕРТИКАЛЬНЫЙ СТЕК "ПОЧЕМУ МЫ"
   // ======================
   const whyUsSection = document.querySelector('#why-us');
   const whyContainer = document.querySelector('.why-sticky-container');
@@ -272,10 +264,9 @@ window.addEventListener('load', () => {
         if (trigger.vars.id === 'whyVertical') trigger.kill();
       });
 
-      // Настройки для мобильных и десктопа
       const isDesktop = window.innerWidth > 992;
-      const scrubValue = isDesktop ? 1 : 0.2; // на мобильных минимальная плавность
-      const pinType = isDesktop ? 'fixed' : 'transform'; // transform легче
+      const scrubValue = isDesktop ? 1 : 0.2;
+      const pinType = isDesktop ? 'fixed' : 'transform';
 
       ScrollTrigger.create({
         id: 'whyVertical',
@@ -325,5 +316,76 @@ window.addEventListener('load', () => {
     });
   }
 
+  // ======================
+  // FALLBACK С ОТЛАДКОЙ
+  // ======================
+  setTimeout(() => {
+    const projectElements = document.querySelectorAll('.projects-desktop .project-item');
+    console.log(`[Fallback] Найдено проектов: ${projectElements.length}`);
+    let needShow = false;
+    projectElements.forEach((el, index) => {
+      const style = window.getComputedStyle(el);
+      const opacity = parseFloat(style.opacity);
+      console.log(`[Fallback] Элемент ${index}: opacity=${style.opacity}, transform=${style.transform}, display=${style.display}`);
+      if (opacity < 0.1 || style.display === 'none') {
+        needShow = true;
+      }
+    });
+    if (needShow) {
+      console.warn('[Fallback] Анимация проектов не сработала — принудительный показ');
+      gsap.set('.projects-desktop .project-item', { 
+        opacity: 1, 
+        y: 0, 
+        clearProps: 'transform' 
+      });
+      // Дополнительно убираем возможные inline-стили от предыдущих анимаций
+      document.querySelectorAll('.projects-desktop .project-item').forEach(el => {
+        el.style.removeProperty('opacity');
+        el.style.removeProperty('transform');
+      });
+    } else {
+      console.log('[Fallback] Все проекты уже видимы.');
+    }
+  }, 2000);
+
+  // Обновляем ScrollTrigger
+  setTimeout(() => {
+    ScrollTrigger.refresh();
+  }, 500);
+
   ScrollTrigger.refresh();
 });
+
+
+// ======================
+// УСИЛЕННЫЙ FALLBACK С ПРИНУДИТЕЛЬНЫМ ПОКАЗОМ
+// ======================
+setTimeout(() => {
+  const projectElements = document.querySelectorAll('.projects-desktop .project-item');
+  console.log(`[Fallback] Найдено проектов: ${projectElements.length}`);
+
+  projectElements.forEach((el, index) => {
+    // Принудительно устанавливаем стили через style с !important
+    el.style.setProperty('opacity', '1', 'important');
+    el.style.settransform = 'none';
+    el.style.setProperty('transform', 'none', 'important');
+    el.style.setProperty('visibility', 'visible', 'important');
+    // Убираем возможные inline-стили от GSAP
+    el.style.removeProperty('opacity');
+    el.style.removeProperty('transform');
+    // Добавляем класс, если нужно переопределить CSS
+    el.classList.add('project-item-visible');
+    console.log(`[Fallback] Элемент ${index} принудительно показан`);
+  });
+
+  // Дополнительно: добавим CSS-правило, которое перекроет любые скрывающие стили
+  const style = document.createElement('style');
+  style.innerHTML = `
+    .projects-desktop .project-item {
+      opacity: 1 !important;
+      transform: none !important;
+      visibility: visible !important;
+    }
+  `;
+  document.head.appendChild(style);
+}, 2500); // Даём больше времени на загрузку
