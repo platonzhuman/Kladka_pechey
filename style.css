@@ -1165,3 +1165,25 @@ body {
     padding: 2rem;
   }
 }
+
+@media (max-width: 992px) {
+  /* Делаем заголовок статичным, чтобы он был в потоке */
+  .why-us-header {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    margin-bottom: 1rem; /* расстояние между заголовком и первой карточкой */
+    margin-top: 1rem;    /* при необходимости отступ сверху */
+  }
+
+  /* Убираем лишний margin-top у контейнера, если он был добавлен ранее */
+  .why-sticky-container {
+    margin-top: 0 !important;
+  }
+
+  /* Можно также добавить отступ для первого элемента, если нужно больше */
+  .why-sticky:first-child {
+    margin-top: 1rem;
+  }
+}
