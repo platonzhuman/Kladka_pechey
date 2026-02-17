@@ -1,0 +1,18 @@
+{
+  "name": "bbq-architecture",
+  "version": "2.0.0",
+  "description": "Интерактивный сайт для студии печных комплексов",
+  "main": "index.js",
+  "scripts": {
+    "start": "live-server --port=3000"
+  },
+  "keywords": ["gsap", "lenis", "interactive", "barbecue"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "gsap": "^3.14.2"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}
