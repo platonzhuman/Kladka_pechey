@@ -1,4 +1,4 @@
-// index.js — адаптивная версия: Lenis только на десктопе
+// index.js — финальная версия с оптимизацией для мобильных
 
 window.addEventListener('load', () => {
   if (typeof gsap === 'undefined') {
@@ -7,6 +7,16 @@ window.addEventListener('load', () => {
   }
 
   gsap.registerPlugin(ScrollTrigger);
+
+  // ======================
+  // ГЛОБАЛЬНЫЕ НАСТРОЙКИ ПРОИЗВОДИТЕЛЬНОСТИ
+  // ======================
+  gsap.ticker.lagSmoothing(1000, 16); // сглаживание рывков
+  ScrollTrigger.config({
+    limitCallbacks: true,         // ограничиваем колбэки на кадр
+    ignoreMobileResize: true,     // игнорируем resize на мобильных
+  });
+  ScrollTrigger.normalizeScroll(true); // улучшаем тач-события
 
   // ======================
   // ОТКЛЮЧАЕМ ВОССТАНОВЛЕНИЕ ПРОКРУТКИ БРАУЗЕРОМ
@@ -49,7 +59,6 @@ window.addEventListener('load', () => {
 
     gsap.ticker.lagSmoothing(0);
 
-    // Прокси для ScrollTrigger через Lenis
     ScrollTrigger.scrollerProxy(document.body, {
       scrollTop(value) {
         if (arguments.length) {
@@ -63,14 +72,13 @@ window.addEventListener('load', () => {
       pinType: document.body.style.transform ? 'transform' : 'fixed',
     });
   } else {
-    // На мобильных — обычный скролл
     ScrollTrigger.scrollerProxy(document.body, {
       scrollTop(value) {
         if (arguments.length) {
           window.scrollTo(0, value);
         }
         return window.pageYOffset;
-      }
+      },
     });
   }
 
@@ -105,7 +113,6 @@ window.addEventListener('load', () => {
   // ======================
   // АНИМАЦИИ (РАБОТАЮТ ВЕЗДЕ)
   // ======================
-  // Hero
   gsap.from('.hero__title-line', {
     y: 100,
     opacity: 0,
@@ -127,7 +134,6 @@ window.addEventListener('load', () => {
     ease: 'back.out(1.7)',
   });
 
-  // Вращающиеся карточки
   gsap.utils.toArray('.rotating-card').forEach((card, i) => {
     gsap.fromTo(card,
       { rotation: i % 2 === 0 ? -10 : 10, y: 50 },
@@ -144,7 +150,6 @@ window.addEventListener('load', () => {
     );
   });
 
-  // Проекты (появление)
   gsap.from('.project-item', {
     scrollTrigger: {
       trigger: '#projects',
@@ -156,7 +161,6 @@ window.addEventListener('load', () => {
     stagger: 0.1,
   });
 
-  // Заголовки секций
   gsap.utils.toArray('.section-title').forEach(title => {
     gsap.from(title, {
       scrollTrigger: {
@@ -201,10 +205,9 @@ window.addEventListener('load', () => {
   }
 
   // ======================
-  // ЭФФЕКТ ВРАЩЕНИЯ ПРИ НАВЕДЕНИИ (ТОЛЬКО ДЕСКТОП)
+  // ЭФФЕКТЫ НАВЕДЕНИЯ (ТОЛЬКО ДЕСКТОП)
   // ======================
   if (isDesktop) {
-    // Карточки проектов
     projectItems.forEach(item => {
       item.addEventListener('mousemove', (e) => {
         const rect = item.getBoundingClientRect();
@@ -228,7 +231,6 @@ window.addEventListener('load', () => {
       });
     });
 
-    // Вращающийся контейнер
     const rotatingContainer = document.querySelector('.rotating-container');
     if (rotatingContainer) {
       rotatingContainer.addEventListener('mousemove', (e) => {
@@ -255,7 +257,7 @@ window.addEventListener('load', () => {
   }
 
 // ======================
-// ВЕРТИКАЛЬНЫЙ СТЕК ДЛЯ "ПОЧЕМУ МЫ" (РАБОТАЕТ НА ВСЕХ УСТРОЙСТВАХ)
+// ВЕРТИКАЛЬНЫЙ СТЕК "ПОЧЕМУ МЫ" — ОПТИМИЗИРОВАН ДЛЯ МОБИЛЬНЫХ
 // ======================
 const whyUsSection = document.querySelector('#why-us');
 const whyContainer = document.querySelector('.why-sticky-container');
@@ -263,24 +265,30 @@ const whyItems = gsap.utils.toArray('.why-sticky');
 
 if (whyUsSection && whyContainer && whyItems.length) {
   function initVerticalStack() {
-    // Убиваем старый триггер
     ScrollTrigger.getAll().forEach(trigger => {
       if (trigger.vars.id === 'whyVertical') trigger.kill();
     });
 
-    // Создаём триггер
+    const isDesktop = window.innerWidth > 992;
+    const scrubValue = isDesktop ? 1 : 0.2; // на мобильных менее плавно, но всё ещё плавно
+    const pinType = isDesktop ? 'fixed' : 'transform'; // на мобильных используем transform
+
     ScrollTrigger.create({
       id: 'whyVertical',
       trigger: whyUsSection,
       pin: true,
+      pinType: pinType,
+      anticipatePin: 1, // помогает сгладить рывки
       start: 'top top',
       end: () => `+=${whyContainer.offsetHeight - window.innerHeight}`,
-      scrub: window.innerWidth > 992 ? 1 : 0.5, // на мобильных менее плавно (меньше расчётов)
+      scrub: scrubValue,
       animation: gsap.to(whyContainer, {
         y: -(whyContainer.offsetHeight - window.innerHeight),
-        ease: 'none'
+        ease: 'none',
+        force3D: true, // аппаратное ускорение
       }),
       invalidateOnRefresh: true,
+      fastScrollEnd: true, // экономит ресурсы при быстром скролле
     });
   }
 
@@ -312,6 +320,5 @@ if (whyUsSection && whyContainer && whyItems.length) {
     });
   }
 
-  // Обновляем ScrollTrigger после всех настроек
   ScrollTrigger.refresh();
 });
