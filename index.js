@@ -1,4 +1,4 @@
-// index.js — финальная версия с принудительной прокруткой в начало
+// index.js — адаптивная версия: Lenis только на десктопе
 
 window.addEventListener('load', () => {
   if (typeof gsap === 'undefined') {
@@ -24,52 +24,67 @@ window.addEventListener('load', () => {
   }
 
   // ======================
-  // LENIS
+  // ОПРЕДЕЛЯЕМ ТИП УСТРОЙСТВА
   // ======================
-  const lenis = new Lenis({
-    duration: 1.2,
-    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-    smooth: true,
-    wheelMultiplier: 1,
-    touchMultiplier: 2,
-  });
+  const isDesktop = window.innerWidth > 992;
 
-  lenis.on('scroll', ScrollTrigger.update);
+  // ======================
+  // LENIS — ТОЛЬКО НА ДЕСКТОПЕ
+  // ======================
+  let lenis;
+  if (isDesktop) {
+    lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smooth: true,
+      wheelMultiplier: 1,
+      touchMultiplier: 2,
+    });
 
-  gsap.ticker.add((time) => {
-    lenis.raf(time * 1000);
-  });
+    lenis.on('scroll', ScrollTrigger.update);
 
-  gsap.ticker.lagSmoothing(0);
+    gsap.ticker.add((time) => {
+      lenis.raf(time * 1000);
+    });
 
-  ScrollTrigger.scrollerProxy(document.body, {
-    scrollTop(value) {
-      if (arguments.length) {
-        lenis.scrollTo(value);
+    gsap.ticker.lagSmoothing(0);
+
+    // Прокси для ScrollTrigger через Lenis
+    ScrollTrigger.scrollerProxy(document.body, {
+      scrollTop(value) {
+        if (arguments.length) {
+          lenis.scrollTo(value);
+        }
+        return lenis.scroll;
+      },
+      getBoundingClientRect() {
+        return { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight };
+      },
+      pinType: document.body.style.transform ? 'transform' : 'fixed',
+    });
+  } else {
+    // На мобильных — обычный скролл
+    ScrollTrigger.scrollerProxy(document.body, {
+      scrollTop(value) {
+        if (arguments.length) {
+          window.scrollTo(0, value);
+        }
+        return window.pageYOffset;
       }
-      return lenis.scroll;
-    },
-    getBoundingClientRect() {
-      return { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight };
-    },
-    pinType: document.body.style.transform ? 'transform' : 'fixed',
-  });
+    });
+  }
 
   // ======================
-  // ПРИНУДИТЕЛЬНАЯ ПРОКРУТКА В НАЧАЛО ПОСЛЕ ЗАГРУЗКИ
+  // ПРИНУДИТЕЛЬНАЯ ПРОКРУТКА В НАЧАЛО
   // ======================
-  // Сразу после инициализации Lenis прокручиваем вверх
-  lenis.scrollTo(0, { immediate: true, duration: 0 });
-  // Дополнительно для обычной прокрутки
+  if (lenis) {
+    lenis.scrollTo(0, { immediate: true, duration: 0 });
+  }
   window.scrollTo(0, 0);
 
-  // Также на всякий случай после полной загрузки всех ресурсов
-  window.addEventListener('load', function() {
-    lenis.scrollTo(0, { immediate: true, duration: 0 });
-    window.scrollTo(0, 0);
-  });
-
-  // Навигация по якорям
+  // ======================
+  // НАВИГАЦИЯ ПО ЯКОРЯМ
+  // ======================
   document.querySelectorAll('.side-nav-link, .btn').forEach(link => {
     link.addEventListener('click', (e) => {
       const href = link.getAttribute('href');
@@ -77,14 +92,18 @@ window.addEventListener('load', () => {
         e.preventDefault();
         const target = document.querySelector(href);
         if (target) {
-          lenis.scrollTo(target, { offset: 0, duration: 1.5 });
+          if (lenis) {
+            lenis.scrollTo(target, { offset: 0, duration: 1.5 });
+          } else {
+            target.scrollIntoView({ behavior: 'smooth' });
+          }
         }
       }
     });
   });
 
   // ======================
-  // АНИМАЦИИ
+  // АНИМАЦИИ (РАБОТАЮТ ВЕЗДЕ)
   // ======================
   // Hero
   gsap.from('.hero__title-line', {
@@ -108,7 +127,7 @@ window.addEventListener('load', () => {
     ease: 'back.out(1.7)',
   });
 
-  // Вращающиеся карточки (секция rotating)
+  // Вращающиеся карточки
   gsap.utils.toArray('.rotating-card').forEach((card, i) => {
     gsap.fromTo(card,
       { rotation: i % 2 === 0 ? -10 : 10, y: 50 },
@@ -125,7 +144,7 @@ window.addEventListener('load', () => {
     );
   });
 
-  // Проекты (анимация появления при вертикальном скролле)
+  // Проекты (появление)
   gsap.from('.project-item', {
     scrollTrigger: {
       trigger: '#projects',
@@ -151,7 +170,7 @@ window.addEventListener('load', () => {
   });
 
   // ======================
-  // ЭФФЕКТ ДЛЯ ПРОЕКТОВ: изменение прозрачности при горизонтальном скролле (только на мобильных)
+  // ЭФФЕКТ ДЛЯ ПРОЕКТОВ (горизонтальный скролл на мобильных)
   // ======================
   const projectsGrid = document.querySelector('.projects-grid');
   const projectItems = document.querySelectorAll('.project-item');
@@ -182,71 +201,98 @@ window.addEventListener('load', () => {
   }
 
   // ======================
-  // ЭФФЕКТ ВРАЩЕНИЯ ПРИ НАВЕДЕНИИ НА КАРТОЧКИ ПРОЕКТОВ
+  // ЭФФЕКТ ВРАЩЕНИЯ ПРИ НАВЕДЕНИИ (ТОЛЬКО ДЕСКТОП)
   // ======================
-  projectItems.forEach(item => {
-    item.addEventListener('mousemove', (e) => {
-      const rect = item.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width - 0.5;
-      const y = (e.clientY - rect.top) / rect.height - 0.5;
-      gsap.to(item, {
-        rotationY: x * 10,
-        rotationX: -y * 10,
-        transformPerspective: 500,
-        duration: 0.5,
-        overwrite: true,
+  if (isDesktop) {
+    // Карточки проектов
+    projectItems.forEach(item => {
+      item.addEventListener('mousemove', (e) => {
+        const rect = item.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width - 0.5;
+        const y = (e.clientY - rect.top) / rect.height - 0.5;
+        gsap.to(item, {
+          rotationY: x * 10,
+          rotationX: -y * 10,
+          transformPerspective: 500,
+          duration: 0.5,
+          overwrite: true,
+        });
+      });
+
+      item.addEventListener('mouseleave', () => {
+        gsap.to(item, {
+          rotationY: 0,
+          rotationX: 0,
+          duration: 0.5,
+        });
       });
     });
 
-    item.addEventListener('mouseleave', () => {
-      gsap.to(item, {
-        rotationY: 0,
-        rotationX: 0,
-        duration: 0.5,
-      });
-    });
-  });
-
-  // ======================
-  // ВЕРТИКАЛЬНЫЙ СТЕК ДЛЯ "ПОЧЕМУ МЫ"
-  // ======================
-  const whyUsSection = document.querySelector('#why-us');
-  const whyContainer = document.querySelector('.why-sticky-container');
-  const whyItems = gsap.utils.toArray('.why-sticky');
-
-  if (whyUsSection && whyContainer && whyItems.length) {
-    function initVerticalStack() {
-      // Убиваем старый триггер
-      ScrollTrigger.getAll().forEach(trigger => {
-        if (trigger.vars.id === 'whyVertical') trigger.kill();
+    // Вращающийся контейнер
+    const rotatingContainer = document.querySelector('.rotating-container');
+    if (rotatingContainer) {
+      rotatingContainer.addEventListener('mousemove', (e) => {
+        const rect = rotatingContainer.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width - 0.5;
+        const y = (e.clientY - rect.top) / rect.height - 0.5;
+        gsap.to('.rotating-card', {
+          rotationY: x * 10,
+          rotationX: -y * 10,
+          transformPerspective: 500,
+          duration: 0.5,
+          overwrite: true,
+        });
       });
 
-      // Создаём триггер
-      ScrollTrigger.create({
-        id: 'whyVertical',
-        trigger: whyUsSection,
-        pin: true,
-        start: 'top top',
-        end: () => `+=${whyContainer.offsetHeight - window.innerHeight}`,
-        scrub: 1,
-        animation: gsap.to(whyContainer, {
-          y: -(whyContainer.offsetHeight - window.innerHeight),
-          ease: 'none'
-        }),
-        invalidateOnRefresh: true,
+      rotatingContainer.addEventListener('mouseleave', () => {
+        gsap.to('.rotating-card', {
+          rotationY: 0,
+          rotationX: 0,
+          duration: 0.5,
+        });
       });
     }
+  }
 
-    initVerticalStack();
+// ======================
+// ВЕРТИКАЛЬНЫЙ СТЕК ДЛЯ "ПОЧЕМУ МЫ" (РАБОТАЕТ НА ВСЕХ УСТРОЙСТВАХ)
+// ======================
+const whyUsSection = document.querySelector('#why-us');
+const whyContainer = document.querySelector('.why-sticky-container');
+const whyItems = gsap.utils.toArray('.why-sticky');
 
-    window.addEventListener('resize', () => {
-      setTimeout(() => {
-        initVerticalStack();
-        ScrollTrigger.refresh();
-      }, 200);
+if (whyUsSection && whyContainer && whyItems.length) {
+  function initVerticalStack() {
+    // Убиваем старый триггер
+    ScrollTrigger.getAll().forEach(trigger => {
+      if (trigger.vars.id === 'whyVertical') trigger.kill();
+    });
+
+    // Создаём триггер
+    ScrollTrigger.create({
+      id: 'whyVertical',
+      trigger: whyUsSection,
+      pin: true,
+      start: 'top top',
+      end: () => `+=${whyContainer.offsetHeight - window.innerHeight}`,
+      scrub: window.innerWidth > 992 ? 1 : 0.5, // на мобильных менее плавно (меньше расчётов)
+      animation: gsap.to(whyContainer, {
+        y: -(whyContainer.offsetHeight - window.innerHeight),
+        ease: 'none'
+      }),
+      invalidateOnRefresh: true,
     });
   }
 
+  initVerticalStack();
+
+  window.addEventListener('resize', () => {
+    setTimeout(() => {
+      initVerticalStack();
+      ScrollTrigger.refresh();
+    }, 200);
+  });
+}
   // ======================
   // БУРГЕР-МЕНЮ
   // ======================
@@ -266,30 +312,6 @@ window.addEventListener('load', () => {
     });
   }
 
-  // ======================
-  // ЭФФЕКТ ВРАЩЕНИЯ ДЛЯ rotating-container
-  // ======================
-  const rotatingContainer = document.querySelector('.rotating-container');
-  if (rotatingContainer) {
-    rotatingContainer.addEventListener('mousemove', (e) => {
-      const rect = rotatingContainer.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width - 0.5;
-      const y = (e.clientY - rect.top) / rect.height - 0.5;
-      gsap.to('.rotating-card', {
-        rotationY: x * 10,
-        rotationX: -y * 10,
-        transformPerspective: 500,
-        duration: 0.5,
-        overwrite: true,
-      });
-    });
-
-    rotatingContainer.addEventListener('mouseleave', () => {
-      gsap.to('.rotating-card', {
-        rotationY: 0,
-        rotationX: 0,
-        duration: 0.5,
-      });
-    });
-  }
+  // Обновляем ScrollTrigger после всех настроек
+  ScrollTrigger.refresh();
 });
