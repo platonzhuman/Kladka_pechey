@@ -11,12 +11,12 @@ window.addEventListener('load', () => {
   // ======================
   // ГЛОБАЛЬНЫЕ НАСТРОЙКИ ПРОИЗВОДИТЕЛЬНОСТИ
   // ======================
-  gsap.ticker.lagSmoothing(1000, 16); // сглаживание рывков
+  gsap.ticker.lagSmoothing(1000, 16);
   ScrollTrigger.config({
-    limitCallbacks: true,         // ограничиваем колбэки на кадр
-    ignoreMobileResize: true,     // игнорируем resize на мобильных
+    limitCallbacks: true,
+    ignoreMobileResize: true,
   });
-  ScrollTrigger.normalizeScroll(true); // улучшаем тач-события
+  ScrollTrigger.normalizeScroll(true); // улучшает обработку касаний
 
   // ======================
   // ОТКЛЮЧАЕМ ВОССТАНОВЛЕНИЕ ПРОКРУТКИ БРАУЗЕРОМ
@@ -39,7 +39,7 @@ window.addEventListener('load', () => {
   const isDesktop = window.innerWidth > 992;
 
   // ======================
-  // LENIS — ТОЛЬКО НА ДЕСКТОПЕ
+  // LENIS — ТОЛЬКО НА ДЕСКТОПЕ (НА МОБИЛЬНЫХ НЕ ИНИЦИАЛИЗИРУЕМ)
   // ======================
   let lenis;
   if (isDesktop) {
@@ -72,6 +72,7 @@ window.addEventListener('load', () => {
       pinType: document.body.style.transform ? 'transform' : 'fixed',
     });
   } else {
+    // На мобильных — обычный скролл
     ScrollTrigger.scrollerProxy(document.body, {
       scrollTop(value) {
         if (arguments.length) {
@@ -150,6 +151,7 @@ window.addEventListener('load', () => {
     );
   });
 
+  // Анимация появления проектов
   gsap.from('.project-item', {
     scrollTrigger: {
       trigger: '#projects',
@@ -161,6 +163,7 @@ window.addEventListener('load', () => {
     stagger: 0.1,
   });
 
+  // Заголовки секций
   gsap.utils.toArray('.section-title').forEach(title => {
     gsap.from(title, {
       scrollTrigger: {
@@ -190,7 +193,7 @@ window.addEventListener('load', () => {
         const distance = Math.abs(itemCenter - containerCenter);
         const maxDistance = containerRect.width / 2 + itemRect.width / 2;
         let opacity = 1 - distance / maxDistance;
-        opacity = Math.min(1, Math.max(1, opacity));
+        opacity = Math.min(1, Math.max(0.4, opacity)); // не уходим в полную прозрачность
         gsap.set(item, { opacity });
       });
     } else {
@@ -256,51 +259,53 @@ window.addEventListener('load', () => {
     }
   }
 
-// ======================
-// ВЕРТИКАЛЬНЫЙ СТЕК "ПОЧЕМУ МЫ" — ОПТИМИЗИРОВАН ДЛЯ МОБИЛЬНЫХ
-// ======================
-const whyUsSection = document.querySelector('#why-us');
-const whyContainer = document.querySelector('.why-sticky-container');
-const whyItems = gsap.utils.toArray('.why-sticky');
+  // ======================
+  // ВЕРТИКАЛЬНЫЙ СТЕК "ПОЧЕМУ МЫ" — РАБОТАЕТ НА ВСЕХ УСТРОЙСТВАХ
+  // ======================
+  const whyUsSection = document.querySelector('#why-us');
+  const whyContainer = document.querySelector('.why-sticky-container');
+  const whyItems = gsap.utils.toArray('.why-sticky');
 
-if (whyUsSection && whyContainer && whyItems.length) {
-  function initVerticalStack() {
-    ScrollTrigger.getAll().forEach(trigger => {
-      if (trigger.vars.id === 'whyVertical') trigger.kill();
-    });
+  if (whyUsSection && whyContainer && whyItems.length) {
+    function initVerticalStack() {
+      ScrollTrigger.getAll().forEach(trigger => {
+        if (trigger.vars.id === 'whyVertical') trigger.kill();
+      });
 
-    const isDesktop = window.innerWidth > 992;
-    const scrubValue = isDesktop ? 1 : 0.2; // на мобильных менее плавно, но всё ещё плавно
-    const pinType = isDesktop ? 'fixed' : 'transform'; // на мобильных используем transform
+      // Настройки для мобильных и десктопа
+      const isDesktop = window.innerWidth > 992;
+      const scrubValue = isDesktop ? 1 : 0.2; // на мобильных минимальная плавность
+      const pinType = isDesktop ? 'fixed' : 'transform'; // transform легче
 
-    ScrollTrigger.create({
-      id: 'whyVertical',
-      trigger: whyUsSection,
-      pin: true,
-      pinType: pinType,
-      anticipatePin: 1, // помогает сгладить рывки
-      start: 'top top',
-      end: () => `+=${whyContainer.offsetHeight - window.innerHeight}`,
-      scrub: scrubValue,
-      animation: gsap.to(whyContainer, {
-        y: -(whyContainer.offsetHeight - window.innerHeight),
-        ease: 'none',
-        force3D: true, // аппаратное ускорение
-      }),
-      invalidateOnRefresh: true,
-      fastScrollEnd: true, // экономит ресурсы при быстром скролле
+      ScrollTrigger.create({
+        id: 'whyVertical',
+        trigger: whyUsSection,
+        pin: true,
+        pinType: pinType,
+        anticipatePin: 1,
+        start: 'top top',
+        end: () => `+=${whyContainer.offsetHeight - window.innerHeight}`,
+        scrub: scrubValue,
+        animation: gsap.to(whyContainer, {
+          y: -(whyContainer.offsetHeight - window.innerHeight),
+          ease: 'none',
+          force3D: true,
+        }),
+        invalidateOnRefresh: true,
+        fastScrollEnd: true,
+      });
+    }
+
+    initVerticalStack();
+
+    window.addEventListener('resize', () => {
+      setTimeout(() => {
+        initVerticalStack();
+        ScrollTrigger.refresh();
+      }, 200);
     });
   }
 
-  initVerticalStack();
-
-  window.addEventListener('resize', () => {
-    setTimeout(() => {
-      initVerticalStack();
-      ScrollTrigger.refresh();
-    }, 200);
-  });
-}
   // ======================
   // БУРГЕР-МЕНЮ
   // ======================

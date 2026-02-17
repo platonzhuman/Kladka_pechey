@@ -1145,26 +1145,72 @@ body {
   color: #3f3d3d;        /* Цвет при наведении (чуть темнее) */
 }
 
-
 @media (max-width: 992px) {
-  /* Отключаем или сильно упрощаем размытие */
-  .why-us-bg {
-    filter: blur(2px); /* минимальное размытие или вовсе 0 */
+  /* Скрываем десктопную версию */
+  .projects-desktop {
+    display: none;
   }
 
-  .why-card {
-    backdrop-filter: none; /* убираем размытие карточек */
-    background: rgba(255, 255, 255, 0.98); /* плотный фон */
-    box-shadow: 0 10px 20px -5px rgba(0,0,0,0.15); /* более лёгкая тень */
+  /* Показываем мобильную */
+  .projects-mobile {
+    display: block;
+    width: 100%;
+    overflow: visible; /* важно: родитель не должен обрезать скролл */
   }
 
-  /* Уменьшаем размер цифр, чтобы снизить нагрузку при перерисовке */
-  .why-number {
-    font-size: 4rem;
+  /* Контейнер с горизонтальным скроллом */
+  .projects-mobile .projects-grid-mobile {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* плавный скролл на iOS */
+    scroll-snap-type: x mandatory;
+    gap: 1rem;
+    padding: 1rem 1rem 2rem; /* отступы по бокам, чтобы первая карточка не упиралась в край */
+    margin: 0;
+    scrollbar-width: none; /* скрываем скроллбар (Firefox) */
   }
 
-  /* Включаем аппаратное ускорение для контейнера */
-  .why-sticky-container {
-    will-change: transform;
+  .projects-mobile .projects-grid-mobile::-webkit-scrollbar {
+    display: none; /* скрываем скроллбар (Chrome/Safari) */
+  }
+
+  /* Карточки */
+  .projects-mobile .project-item-mobile {
+    flex: 0 0 280px; /* фиксированная ширина, можно подогнать под дизайн */
+    scroll-snap-align: start;
+    background: var(--white);
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    height: auto; /* высота по контенту */
+    min-height: 500px; /* примерно как было */
+    display: flex;
+    flex-direction: column;
+  }
+
+  .projects-mobile .project-image {
+    height: 200px;
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+  }
+
+  .projects-mobile .project-content {
+    padding: 1.2rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .projects-mobile .project-content h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .projects-mobile .project-content p {
+    font-size: 0.9rem;
+    color: #666;
+    flex: 1;
   }
 }
