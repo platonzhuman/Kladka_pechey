@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Запрещаем индексацию служебных папок (их содержимое не нужно в поиске)
+Disallow: /images/
+Disallow: /css/
+Disallow: /js/
+
+# Указываем путь к карте сайта
+Sitemap: https://example.com/sitemap.xml

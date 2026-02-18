@@ -1,5 +1,3 @@
-// index.js — финальная версия с плавным мобильным стеком
-
 window.addEventListener('load', () => {
   if (typeof gsap === 'undefined') {
     console.error('GSAP не загрузился. Проверьте подключение.');
@@ -7,40 +5,21 @@ window.addEventListener('load', () => {
   }
 
   gsap.registerPlugin(ScrollTrigger);
-
-  // ======================
-  // ГЛОБАЛЬНЫЕ НАСТРОЙКИ ПРОИЗВОДИТЕЛЬНОСТИ
-  // ======================
   gsap.ticker.lagSmoothing(1000, 16);
   ScrollTrigger.config({
     limitCallbacks: true,
     ignoreMobileResize: true,
   });
-
-  // ======================
-  // ОТКЛЮЧАЕМ ВОССТАНОВЛЕНИЕ ПРОКРУТКИ БРАУЗЕРОМ
-  // ======================
   if ('scrollRestoration' in history) {
     history.scrollRestoration = 'manual';
   }
-
-  // ======================
-  // LOADING SCREEN
-  // ======================
   const loadingScreen = document.getElementById('loading-screen');
   if (loadingScreen) {
     loadingScreen.classList.add('hidden');
   }
-
-  // ======================
-  // ОПРЕДЕЛЯЕМ ТИП УСТРОЙСТВА
-  // ======================
   const isDesktop = window.innerWidth > 992;
   const isMobile = window.innerWidth <= 992;
 
-  // ======================
-  // LENIS — ТОЛЬКО НА ДЕСКТОПЕ (С ЗАЩИТОЙ ОТ ОШИБОК)
-  // ======================
   let lenis;
   if (isDesktop && typeof Lenis !== 'undefined') {
     try {
@@ -90,37 +69,42 @@ window.addEventListener('load', () => {
     });
   }
 
-  // ======================
-  // ПРИНУДИТЕЛЬНАЯ ПРОКРУТКА В НАЧАЛО
-  // ======================
   if (lenis) {
     lenis.scrollTo(0, { immediate: true, duration: 0 });
   }
   window.scrollTo(0, 0);
 
-  // ======================
-  // НАВИГАЦИЯ ПО ЯКОРЯМ
-  // ======================
-  document.querySelectorAll('.side-nav-link, .btn').forEach(link => {
-    link.addEventListener('click', (e) => {
-      const href = link.getAttribute('href');
-      if (href && href.startsWith('#')) {
-        e.preventDefault();
-        const target = document.querySelector(href);
-        if (target) {
-          if (lenis) {
-            lenis.scrollTo(target, { offset: 0, duration: 1.5 });
-          } else {
-            target.scrollIntoView({ behavior: 'smooth' });
-          }
+document.querySelectorAll('.side-nav-link, .btn').forEach(link => {
+  link.addEventListener('click', (e) => {
+    const href = link.getAttribute('href');
+    if (href && href.startsWith('#')) {
+      e.preventDefault();
+
+      let target;
+      if (href === '#projects') {
+        const desktopProjects = document.querySelector('#projects');
+        const mobileProjects = document.querySelector('#projects-mobile');
+        if (desktopProjects && window.getComputedStyle(desktopProjects).display !== 'none') {
+          target = desktopProjects;
+        } else if (mobileProjects && window.getComputedStyle(mobileProjects).display !== 'none') {
+          target = mobileProjects;
+        } else {
+          target = desktopProjects || mobileProjects; // fallback
+        }
+      } else {
+        target = document.querySelector(href);
+      }
+
+      if (target) {
+        if (lenis) {
+          lenis.scrollTo(target, { offset: 0, duration: 1.5 });
+        } else {
+          target.scrollIntoView({ behavior: 'smooth' });
         }
       }
-    });
+    }
   });
-
-  // ======================
-  // АНИМАЦИИ (С ПРОВЕРКОЙ НАЛИЧИЯ ЭЛЕМЕНТОВ)
-  // ======================
+});
   if (document.querySelector('.hero__title-line')) {
     gsap.from('.hero__title-line', {
       y: 100,
@@ -169,7 +153,6 @@ window.addEventListener('load', () => {
     });
   }
 
-  // Анимация появления проектов (десктопная сетка)
   const projectItems = document.querySelectorAll('.projects-desktop .project-item');
   if (projectItems.length) {
     gsap.from(projectItems, {
@@ -199,9 +182,6 @@ window.addEventListener('load', () => {
     });
   }
 
-  // ======================
-  // ЭФФЕКТЫ НАВЕДЕНИЯ (ТОЛЬКО ДЕСКТОП)
-  // ======================
   if (isDesktop) {
     const desktopProjectItems = document.querySelectorAll('.projects-desktop .project-item');
     desktopProjectItems.forEach(item => {
@@ -252,16 +232,12 @@ window.addEventListener('load', () => {
     }
   }
 
-  // ======================
-  // ВЕРТИКАЛЬНЫЙ СТЕК "ПОЧЕМУ МЫ" — адаптивная версия
-  // ======================
   const whyUsSection = document.querySelector('#why-us');
   const whyContainer = document.querySelector('.why-sticky-container');
   const whyItems = gsap.utils.toArray('.why-sticky');
 
   if (whyUsSection && whyContainer && whyItems.length) {
     if (isDesktop) {
-      // Десктоп: эффект pin с анимацией
       ScrollTrigger.create({
         id: 'whyVertical',
         trigger: whyUsSection,
@@ -280,7 +256,6 @@ window.addEventListener('load', () => {
         fastScrollEnd: true,
       });
     } else {
-      // Мобильные: простая анимация появления каждой карточки при скролле
       whyItems.forEach((item, index) => {
         gsap.fromTo(item,
           { opacity: 0, y: 50 },
@@ -301,9 +276,6 @@ window.addEventListener('load', () => {
     }
   }
 
-  // ======================
-  // БУРГЕР-МЕНЮ
-  // ======================
   const burger = document.querySelector('.burger');
   const sideMenu = document.querySelector('.side-menu');
   if (burger && sideMenu) {
@@ -320,9 +292,6 @@ window.addEventListener('load', () => {
     });
   }
 
-  // ======================
-  // FALLBACK ДЛЯ ПРОЕКТОВ (без изменений)
-  // ======================
   setTimeout(() => {
     const projectElements = document.querySelectorAll('.projects-desktop .project-item');
     console.log(`[Fallback] Найдено проектов: ${projectElements.length}`);
@@ -351,7 +320,6 @@ window.addEventListener('load', () => {
     }
   }, 2000);
 
-  // Усиленный fallback
   setTimeout(() => {
     const projectElements = document.querySelectorAll('.projects-desktop .project-item');
     console.log(`[Fallback2] Найдено проектов: ${projectElements.length}`);
@@ -375,7 +343,6 @@ window.addEventListener('load', () => {
     document.head.appendChild(style);
   }, 2500);
 
-  // Обновляем ScrollTrigger
   setTimeout(() => {
     ScrollTrigger.refresh();
   }, 500);

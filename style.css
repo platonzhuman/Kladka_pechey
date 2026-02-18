@@ -1,5 +1,3 @@
-/* style.css — финальная версия с улучшенной адаптивностью */
-
 :root {
   --bg-light: #f9f8f6;
   --bg-gradient-start: #f9f8f6;
@@ -41,7 +39,6 @@ body {
   min-height: 100vh;
 }
 
-/* ===== LOADING SCREEN ===== */
 .loading-screen {
   position: fixed;
   top: 0;
@@ -71,7 +68,6 @@ body {
   to { transform: rotate(360deg); }
 }
 
-/* ===== БОКОВОЕ МЕНЮ ===== */
 .side-menu {
   position: fixed;
   top: 30%;
@@ -181,7 +177,6 @@ body {
   margin-top: auto;
 }
 
-/* ===== БУРГЕР ===== */
 .burger {
   position: fixed;
   top: 1.5rem;
@@ -210,13 +205,11 @@ body {
 .burger.active span:nth-child(2) { opacity: 0; }
 .burger.active span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
 
-/* ===== ОСНОВНОЙ КОНТЕНТ ===== */
 .main-content {
   margin-left: 280px;
   padding: 2rem 3rem;
 }
 
-/* ===== HERO ===== */
 .hero {
   min-height: 40vh;
   display: flex;
@@ -278,7 +271,6 @@ body {
   color: white;
 }
 
-/* ===== ВРАЩАЮЩАЯСЯ СЕКЦИЯ ===== */
 .rotating-section {
   padding: 0rem 0 1rem;
   position: relative;
@@ -327,7 +319,6 @@ body {
   font-weight: 400;
 }
 
-/* ===== ПРОЕКТЫ ===== */
 .section-title {
   font-size: clamp(2rem, 5vw, 3rem);
   font-weight: 500;
@@ -345,7 +336,6 @@ body {
   margin: 1rem auto 0;
 }
 
-/* Десктопная сетка (по умолчанию) */
 .projects-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -438,7 +428,6 @@ body {
   flex-shrink: 0;
 }
 
-/* ===== МОБИЛЬНАЯ ВЕРСИЯ ПРОЕКТОВ ===== */
 .projects-mobile {
   display: none;
 }
@@ -490,7 +479,6 @@ body {
   flex: 1;
 }
 
-/* ===== ПОЧЕМУ МЫ — ВЕРТИКАЛЬНЫЙ СТЕК ===== */
 .why-us {
   position: relative;
   height: 100vh;
@@ -613,7 +601,6 @@ body {
   z-index: 1;
 }
 
-/* ===== КОНТАКТЫ ===== */
 .contacts {
   max-width: 1200px;
   margin: 6rem auto;
@@ -727,7 +714,6 @@ body {
   text-transform: uppercase;
 }
 
-/* ===== ФУТЕР ===== */
 .footer {
   text-align: center;
   padding: 2rem;
@@ -743,11 +729,6 @@ body {
   color: #3f3d3d;
 }
 
-/* ====================================================== */
-/* ==================== МЕДИА-ЗАПРОСЫ =================== */
-/* ====================================================== */
-
-/* Десктоп (≥993px) */
 @media (min-width: 993px) {
   .rotating-card--1 {
     top: 0%;
@@ -762,14 +743,14 @@ body {
     z-index: 2;
   }
   .rotating-card--3 {
-    top: -3%;
+    top: 10%;
     left: 65%;
     transform: rotate(-3deg) translateZ(10px);
     z-index: 1;
   }
 }
 
-/* Планшеты (769–992px) */
+
 @media (max-width: 992px) and (min-width: 769px) {
   .main-content {
     margin-left: 0;
@@ -814,7 +795,6 @@ body {
     font-size: 1.2rem;
   }
 
-  /* Скрываем десктопные проекты, показываем мобильные */
   .projects-desktop {
     display: none;
   }
@@ -826,7 +806,6 @@ body {
     min-height: 520px;
   }
 
-  /* Почему мы */
   .why-card {
     padding: 2.5rem;
   }
@@ -843,7 +822,6 @@ body {
     font-size: 6rem;
   }
 
-  /* Контакты */
   .contacts-card {
     grid-template-columns: 1fr;
     gap: 2rem;
@@ -867,7 +845,6 @@ body {
   }
 }
 
-/* Большие телефоны (577–768px) */
 @media (max-width: 768px) and (min-width: 577px) {
   .main-content {
     margin-left: 0;
@@ -912,7 +889,6 @@ body {
     font-size: 1.2rem;
   }
 
-  /* Проекты */
   .projects-desktop {
     display: none;
   }
@@ -927,7 +903,6 @@ body {
     height: 200px;
   }
 
-  /* Вращающиеся карточки */
   .rotating-section {
     min-height: 600px;
   }
@@ -965,7 +940,6 @@ body {
     z-index: 1;
   }
 
-  /* Почему мы */
   .why-card {
     padding: 2rem;
   }
@@ -979,7 +953,7 @@ body {
     font-size: 5rem;
   }
 
-  /* Контакты */
+
   .contacts {
     margin: 4rem auto;
   }
@@ -1007,7 +981,7 @@ body {
   }
 }
 
-/* Малые телефоны (≤576px) */
+
 @media (max-width: 576px) {
   .main-content {
     margin-left: 0;
@@ -1047,7 +1021,7 @@ body {
     font-size: 1rem;
   }
 
-  /* Проекты */
+
   .projects-desktop {
     display: none;
   }
@@ -1059,7 +1033,6 @@ body {
     min-height: 480px;
   }
 
-  /* Вращающиеся карточки */
   .rotating-section {
     min-height: 500px;
   }
@@ -1089,7 +1062,7 @@ body {
     left: 30%;
   }
 
-  /* Почему мы */
+
   .why-card {
     padding: 1.5rem;
   }
@@ -1103,7 +1076,6 @@ body {
     font-size: 4rem;
   }
 
-  /* Контакты */
   .contacts-card {
     grid-template-columns: 1fr;
     gap: 1.5rem;
@@ -1139,25 +1111,24 @@ body {
   }
 }
 
-/* ===== МОБИЛЬНЫЕ ПРАВКИ ДЛЯ "ПОЧЕМУ МЫ" (убираем сложный стек) ===== */
 @media (max-width: 992px) {
   .why-us {
-    height: auto !important;           /* высота по контенту */
-    overflow: visible !important;      /* убираем скрытие */
-    margin-top: 60px;                  /* можно подогнать под дизайн */
+    height: auto !important;          
+    overflow: visible !important;      
+    margin-top: 60px;                 
   }
   .why-sticky-container {
-    position: relative !important;     /* убираем absolute */
-    height: auto !important;           /* высота по контенту */
-    transform: none !important;        /* отключаем трансформацию */
+    position: relative !important;   
+    height: auto !important;          
+    transform: none !important;       
     will-change: auto !important;
     margin-top: 100px;  
   }
   .why-sticky {
-    flex: 0 0 auto;                    /* убираем фиксированную высоту */
+    flex: 0 0 auto;                  
     min-height: auto;
     padding: 2rem 1rem;
-    opacity: 1;                         /* будет управляться JS-анимацией */
+    opacity: 1;                         
     transform: none;
   }
   .why-card {
@@ -1167,22 +1138,21 @@ body {
 }
 
 @media (max-width: 992px) {
-  /* Делаем заголовок статичным, чтобы он был в потоке */
   .why-us-header {
     position: relative !important;
     top: auto !important;
     left: auto !important;
     transform: none !important;
-    margin-bottom: 1rem; /* расстояние между заголовком и первой карточкой */
-    margin-top: 1rem;    /* при необходимости отступ сверху */
+    margin-bottom: 1rem; 
+    margin-top: 1rem;    
   }
 
-  /* Убираем лишний margin-top у контейнера, если он был добавлен ранее */
+
   .why-sticky-container {
     margin-top: 0 !important;
   }
 
-  /* Можно также добавить отступ для первого элемента, если нужно больше */
+
   .why-sticky:first-child {
     margin-top: 1rem;
   }
